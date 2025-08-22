@@ -1,15 +1,19 @@
 <# FONTCAD_menu.ps1
  - 1) Install ALL  2) Install AUTOCAD (SHX)
- - Tu nap script cai chinh tu RAW GitHub
+ - Tự nạp script cài chính từ RAW GitHub
 #>
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# Config
-$RawInstallUrl = "https://raw.githubusercontent.com/SurveyRoyal/Survey/main/Install_Fonts_FromZip.ps1"
-$ZipUrl        = "https://github.com/SurveyRoyal/Survey/releases/download/CAIDATFONT/FONTCAD.zip"
-$DestShx       = "C:\FONTCAD\SHX"
+# ==== CONFIG ====
+$RawInstallUrl  = "https://raw.githubusercontent.com/SurveyRoyal/Survey/main/Install_Fonts_FromZip.ps1"
+$ZipUrlDefault  = "https://github.com/SurveyRoyal/Survey/releases/download/CAIDATFONT/FONTCAD.zip"
+$DestShx        = "C:\FONTCAD\SHX"
+
+# Cho phép override từ biến môi trường (tùy chọn), nếu không thì dùng mặc định
+if ([string]::IsNullOrWhiteSpace($ZipUrl)) { $ZipUrl = $env:FONTCAD_ZIP }
+if ([string]::IsNullOrWhiteSpace($ZipUrl)) { $ZipUrl = $ZipUrlDefault }
 
 function Ensure-InstallFn {
   if (-not (Get-Command Install-Fonts_FromZip -ErrorAction SilentlyContinue)) {
@@ -28,8 +32,7 @@ function Add-SupportPath($path) {
       $cur = (Get-ItemProperty -Path $k.PSPath -Name "ACAD" -ErrorAction SilentlyContinue).ACAD
       if ($cur) {
         if ($cur -notmatch [regex]::Escape($path)) {
-          Set-ItemProperty -Path $k.PSPath -Name "ACAD" -Value "$path;$cur"
-          $t++
+          Set-ItemProperty -Path $k.PSPath -Name "ACAD" -Value "$path;$cur"; $t++
         } else { $m++ }
       }
     }
@@ -37,22 +40,34 @@ function Add-SupportPath($path) {
   } catch { Write-Host "   !! Cannot update Support Path: $($_.Exception.Message)" -ForegroundColor Red }
 }
 
+function Validate-ZipUrl([string]$url) {
+  if ([string]::IsNullOrWhiteSpace($url)) { return $false }
+  try { return ([Uri]::IsWellFormedUriString(($url -replace '[\u200B-\u200D\uFEFF]', '').Trim(),[UriKind]::Absolute)) }
+  catch { return $false }
+}
+
 function Install-ALL {
   Ensure-InstallFn
+  if (-not (Validate-ZipUrl $ZipUrl)) { Write-Host "!! ZipUrl rong/khong hop le" -f Red; return }
   Write-Host "`n=== Install ALL (SHX + Windows fonts + CTB) ===" -ForegroundColor Cyan
   Write-Host "ZIP: $ZipUrl" -ForegroundColor DarkGray
-  Install-Fonts_FromZip -Zip $ZipUrl -DoShx -DoTtf -DoPlot -OnlyNew -DestShx $DestShx
-  Add-SupportPath $DestShx
-  Write-Host ">>> DONE. Log: $DestShx\font_install.log`n" -ForegroundColor Green
+  try {
+    Install-Fonts_FromZip -Zip $ZipUrl -DoShx -DoTtf -DoPlot -OnlyNew -DestShx $DestShx
+    Add-SupportPath $DestShx
+    Write-Host ">>> DONE. Log: $DestShx\font_install.log`n" -ForegroundColor Green
+  } catch { Write-Host "!! ERROR: $($_.Exception.Message)" -ForegroundColor Red }
 }
 
 function Install-AUTOCAD {
   Ensure-InstallFn
+  if (-not (Validate-ZipUrl $ZipUrl)) { Write-Host "!! ZipUrl rong/khong hop le" -f Red; return }
   Write-Host "`n=== Install AUTOCAD (only SHX) ===" -ForegroundColor Cyan
   Write-Host "ZIP: $ZipUrl" -ForegroundColor DarkGray
-  Install-Fonts_FromZip -Zip $ZipUrl -DoShx -OnlyNew -DestShx $DestShx
-  Add-SupportPath $DestShx
-  Write-Host ">>> DONE. Log: $DestShx\font_install.log`n" -ForegroundColor Green
+  try {
+    Install-Fonts_FromZip -Zip $ZipUrl -DoShx -OnlyNew -DestShx $DestShx
+    Add-SupportPath $DestShx
+    Write-Host ">>> DONE. Log: $DestShx\font_install.log`n" -ForegroundColor Green
+  } catch { Write-Host "!! ERROR: $($_.Exception.Message)" -ForegroundColor Red }
 }
 
 function Show-Menu {
