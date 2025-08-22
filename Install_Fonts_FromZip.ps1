@@ -1,25 +1,26 @@
 <# FONTCAD_menu.ps1
  - 1) Install ALL  2) Install AUTOCAD (SHX)
- - Nạp script chính từ RAW GitHub, gọi -Zip "<URL>"
+ - Tu nap script cai chinh tu RAW GitHub
 #>
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
+# Config
 $RawInstallUrl = "https://raw.githubusercontent.com/SurveyRoyal/Survey/main/Install_Fonts_FromZip.ps1"
 $ZipUrl        = "https://github.com/SurveyRoyal/Survey/releases/download/CAIDATFONT/FONTCAD.zip"
 $DestShx       = "C:\FONTCAD\SHX"
 
 function Ensure-InstallFn {
   if (-not (Get-Command Install-Fonts_FromZip -ErrorAction SilentlyContinue)) {
-    Write-Host "`n-> Nap script cai dat tu GitHub..." -ForegroundColor Yellow
+    Write-Host "`n-> Loading installer script from GitHub..." -ForegroundColor Yellow
     irm $RawInstallUrl | iex
   }
 }
 
 function Add-SupportPath($path) {
   try {
-    Write-Host "-> Them $path vao AutoCAD Support Path..." -ForegroundColor Yellow
+    Write-Host "-> Add $path to AutoCAD Support Path..." -ForegroundColor Yellow
     $keys = Get-ChildItem "HKCU:\Software\Autodesk\AutoCAD" -Recurse -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -match "\\Profiles\\[^\\]+\\General$" }
     $t=0;$m=0
@@ -32,30 +33,32 @@ function Add-SupportPath($path) {
         } else { $m++ }
       }
     }
-    Write-Host "   Updated: $t, Da co san: $m" -ForegroundColor Green
-  } catch { Write-Host "   !! Khong cap nhat duoc: $($_.Exception.Message)" -ForegroundColor Red }
+    Write-Host "   Updated: $t, Exists: $m" -ForegroundColor Green
+  } catch { Write-Host "   !! Cannot update Support Path: $($_.Exception.Message)" -ForegroundColor Red }
 }
 
 function Install-ALL {
   Ensure-InstallFn
-  Write-Host "`n=== Cai ALL (SHX + Windows fonts + CTB) ===" -ForegroundColor Cyan
+  Write-Host "`n=== Install ALL (SHX + Windows fonts + CTB) ===" -ForegroundColor Cyan
+  Write-Host "ZIP: $ZipUrl" -ForegroundColor DarkGray
   Install-Fonts_FromZip -Zip $ZipUrl -DoShx -DoTtf -DoPlot -OnlyNew -DestShx $DestShx
   Add-SupportPath $DestShx
-  Write-Host ">>> Hoan tat. Log: $DestShx\font_install.log`n" -ForegroundColor Green
+  Write-Host ">>> DONE. Log: $DestShx\font_install.log`n" -ForegroundColor Green
 }
 
 function Install-AUTOCAD {
   Ensure-InstallFn
-  Write-Host "`n=== Cai chi AutoCAD (SHX) ===" -ForegroundColor Cyan
+  Write-Host "`n=== Install AUTOCAD (only SHX) ===" -ForegroundColor Cyan
+  Write-Host "ZIP: $ZipUrl" -ForegroundColor DarkGray
   Install-Fonts_FromZip -Zip $ZipUrl -DoShx -OnlyNew -DestShx $DestShx
   Add-SupportPath $DestShx
-  Write-Host ">>> Hoan tat. Log: $DestShx\font_install.log`n" -ForegroundColor Green
+  Write-Host ">>> DONE. Log: $DestShx\font_install.log`n" -ForegroundColor Green
 }
 
 function Show-Menu {
   Clear-Host
   Write-Host "==============================="
-  Write-Host "     MENU CAI DAT FONTCAD     "
+  Write-Host "        MENU CAI DAT FONTCAD   "
   Write-Host "==============================="
   Write-Host "1. Install ALL (SHX + Windows fonts + CTB)"
   Write-Host "2. Install AUTOCAD (chi SHX)"
