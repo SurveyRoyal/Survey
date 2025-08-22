@@ -8,7 +8,7 @@ $ErrorActionPreference = "Stop"
 
 # Config
 $RawInstallUrl = "https://raw.githubusercontent.com/SurveyRoyal/Survey/main/Install_Fonts_FromZip.ps1"
-$ZipUrl        = "https://github.com/SurveyRoyal/Survey/releases/download/CAIDATFONT/FONTCAD.zip"
+$ZipUrl        = "https://github.com/SurveyRoyal/Survey/blob/main/Install_Fonts_FromZip.ps1"
 $DestShx       = "C:\FONTCAD\SHX"
 
 function Ensure-InstallFn {
