@@ -1,28 +1,25 @@
 <# FONTCAD_menu.ps1
- - Menu 1) Install ALL  2) Install AUTOCAD (chỉ SHX)
- - Mặc định SHX -> C:\FONTCAD\SHX
- - ZIP fonts của bạn: Survey/CAIDATFONT/FONTCAD.zip
- - Cần chạy PowerShell "Run as Administrator"
+ - 1) Install ALL  2) Install AUTOCAD (SHX)
+ - Nạp script chính từ RAW GitHub, gọi -Zip "<URL>"
 #>
 
 $ErrorActionPreference = "Stop"
 [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12
 
-# ---- cấu hình ----
 $RawInstallUrl = "https://raw.githubusercontent.com/SurveyRoyal/Survey/main/Install_Fonts_FromZip.ps1"
 $ZipUrl        = "https://github.com/SurveyRoyal/Survey/releases/download/CAIDATFONT/FONTCAD.zip"
 $DestShx       = "C:\FONTCAD\SHX"
 
 function Ensure-InstallFn {
   if (-not (Get-Command Install-Fonts_FromZip -ErrorAction SilentlyContinue)) {
-    Write-Host "-> Dang nap script cai dat tu GitHub..." -f Yellow
+    Write-Host "`n-> Nap script cai dat tu GitHub..." -ForegroundColor Yellow
     irm $RawInstallUrl | iex
   }
 }
 
 function Add-SupportPath($path) {
   try {
-    Write-Host "-> Them $path vao AutoCAD Support Path (cac profile HKCU)..." -f Yellow
+    Write-Host "-> Them $path vao AutoCAD Support Path..." -ForegroundColor Yellow
     $keys = Get-ChildItem "HKCU:\Software\Autodesk\AutoCAD" -Recurse -ErrorAction SilentlyContinue |
             Where-Object { $_.Name -match "\\Profiles\\[^\\]+\\General$" }
     $t=0;$m=0
@@ -30,32 +27,29 @@ function Add-SupportPath($path) {
       $cur = (Get-ItemProperty -Path $k.PSPath -Name "ACAD" -ErrorAction SilentlyContinue).ACAD
       if ($cur) {
         if ($cur -notmatch [regex]::Escape($path)) {
-          $new = "$path;$cur"
-          Set-ItemProperty -Path $k.PSPath -Name "ACAD" -Value $new
+          Set-ItemProperty -Path $k.PSPath -Name "ACAD" -Value "$path;$cur"
           $t++
         } else { $m++ }
       }
     }
-    Write-Host "   -> Updated: $t, Da co san: $m" -f Green
-  } catch {
-    Write-Host "   !! Khong the cap nhat Support Path: $($_.Exception.Message)" -f Red
-  }
+    Write-Host "   Updated: $t, Da co san: $m" -ForegroundColor Green
+  } catch { Write-Host "   !! Khong cap nhat duoc: $($_.Exception.Message)" -ForegroundColor Red }
 }
 
 function Install-ALL {
   Ensure-InstallFn
-  Write-Host "`n=== Cai ALL (SHX + Windows fonts + CTB) ===" -f Cyan
-  Install-Fonts_FromZip -ZipUrl $ZipUrl -DoShx -DoTtf -DoPlot -OnlyNew -DestShx $DestShx
+  Write-Host "`n=== Cai ALL (SHX + Windows fonts + CTB) ===" -ForegroundColor Cyan
+  Install-Fonts_FromZip -Zip $ZipUrl -DoShx -DoTtf -DoPlot -OnlyNew -DestShx $DestShx
   Add-SupportPath $DestShx
-  Write-Host ">>> Hoan tat. Log: $DestShx\font_install.log`n" -f Green
+  Write-Host ">>> Hoan tat. Log: $DestShx\font_install.log`n" -ForegroundColor Green
 }
 
 function Install-AUTOCAD {
   Ensure-InstallFn
-  Write-Host "`n=== Cai chi cho AutoCAD (SHX) ===" -f Cyan
-  Install-Fonts_FromZip -ZipUrl $ZipUrl -DoShx -OnlyNew -DestShx $DestShx
+  Write-Host "`n=== Cai chi AutoCAD (SHX) ===" -ForegroundColor Cyan
+  Install-Fonts_FromZip -Zip $ZipUrl -DoShx -OnlyNew -DestShx $DestShx
   Add-SupportPath $DestShx
-  Write-Host ">>> Hoan tat. Log: $DestShx\font_install.log`n" -f Green
+  Write-Host ">>> Hoan tat. Log: $DestShx\font_install.log`n" -ForegroundColor Green
 }
 
 function Show-Menu {
@@ -78,6 +72,6 @@ do {
     "2" { Install-AUTOCAD;Pause }
     "3" { ii "$DestShx\font_install.log" -ErrorAction SilentlyContinue; Pause }
     "4" { break }
-    Default { Write-Host "Lua chon khong hop le!" -f Red; Start-Sleep 1 }
+    Default { Write-Host "Lua chon khong hop le!" -ForegroundColor Red; Start-Sleep 1 }
   }
 } while ($true)
