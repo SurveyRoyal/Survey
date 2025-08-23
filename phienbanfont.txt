@@ -1,1 +1,1 @@
-1.0|https://raw.githubusercontent.com/SurveyRoyal/Survey/main/scripts/csvf_font_installer.lsp
+1.1|https://raw.githubusercontent.com/SurveyRoyal/Survey/main/scripts/csvf_font_installer.lsp
