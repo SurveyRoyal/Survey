@@ -1,2 +1,2 @@
-1.1|https://raw.githubusercontent.com/SurveyRoyal/Survey/main/font.lsp
+1.1|https://drive.google.com/uc?export=download&id=10tjv4h4WoktFSzQ4cgbsfJLc2Yivioj3
 
