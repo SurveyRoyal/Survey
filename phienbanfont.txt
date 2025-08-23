@@ -1,1 +1,2 @@
-1.1|https://github.com/SurveyRoyal/Survey/releases/download/font1.1/font.lsp
+1.1|https://github.com/SurveyRoyal/Survey/releases/latest/download/font.lsp
+
