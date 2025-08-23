@@ -1,1 +1,2 @@
-1.1|https://raw.githubusercontent.com/SurveyRoyal/Survey/main/scripts/font.lsp
+1.1|https://raw.githubusercontent.com/SurveyRoyal/Survey/main/font.lsp
+
